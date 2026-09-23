@@ -1,0 +1,581 @@
+// Tabulator + its Bootstrap 5 theme, used by the table view.
+// Full Bootstrap is deliberately NOT imported: the reference visual pulls it in,
+// but its global resets would restyle this visual's chart header controls.
+// The bootstrap5 Tabulator theme is self-contained for .tabulator* classes.
+@import "~tabulator-tables/dist/css/tabulator.css";
+@import "~tabulator-tables/dist/css/tabulator_bootstrap5.css";
+
+.dbx-root {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+    font-family: "Segoe UI", wf_segoe-ui_normal, helvetica, arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+
+    button {
+        font: inherit;
+        outline-offset: 1px;
+        transition: background 90ms ease, color 90ms ease;
+    }
+
+    button:focus-visible,
+    select:focus-visible,
+    [tabindex]:focus-visible {
+        outline: 2px solid #0b6bcb;
+        outline-offset: 1px;
+    }
+
+    select {
+        appearance: auto;
+        font: inherit;
+    }
+}
+
+.dbx-controls {
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    user-select: none;
+    position: relative;
+    z-index: 5;
+}
+
+.dbx-ctl-row {
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+/* ---- dimension dropdown: closed box + radio list ------------------ */
+.dbx-dd {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.dbx-dd-box {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 8px;
+    cursor: pointer;
+    box-sizing: border-box;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+
+    .dbx-dd-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .dbx-dd-chev {
+        display: inline-flex;
+        align-items: center;
+        flex: 0 0 auto;
+    }
+}
+
+.dbx-dd-popup {
+    position: absolute;
+    top: calc(100% + 1px);
+    left: 0;
+    z-index: 40;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+    box-sizing: border-box;
+    padding: 2px 0;
+}
+
+.dbx-dd-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 5px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+
+    input[type="radio"] {
+        margin: 0;
+        flex: 0 0 auto;
+        cursor: pointer;
+        width: 13px;
+        height: 13px;
+    }
+}
+
+.dbx-chart-title,
+.dbx-table-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.dbx-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    position: relative;
+}
+
+/* ---- category axis title: pinned below the horizontal scrollbar --- */
+.dbx-x-title {
+    flex: 0 0 auto;
+    text-align: center;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ---- horizontal plot scroll -------------------------------------- */
+/* the native scrollbar is hidden; .dbx-hscroll-* below is drawn instead so the
+   bar looks the same in Power BI Desktop, the service and headless tests */
+.dbx-plot-scroll {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+        height: 0;
+        width: 0;
+        display: none;
+    }
+}
+
+.dbx-hscroll-track {
+    flex: 0 0 auto;
+    position: relative;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    background: #f3f2f1;
+    border-radius: 4px;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.dbx-hscroll-thumb {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    min-width: 24px;
+    background: #c8c6c4;
+    border-radius: 4px;
+    cursor: grab;
+}
+
+.dbx-hscroll-thumb:hover {
+    background: #a19f9d;
+}
+
+.dbx-hscroll-thumb:active {
+    cursor: grabbing;
+    background: #8a8886;
+}
+
+.dbx-content > svg rect,
+.dbx-content > svg path {
+    shape-rendering: crispEdges;
+}
+
+.dbx-content svg text {
+    dominant-baseline: auto;
+    user-select: none;
+}
+
+.dbx-notice {
+    flex: 0 0 auto;
+    font-size: 9pt;
+    color: #605e5c;
+    padding: 3px 8px;
+    background: #fff4ce;
+    display: none;
+}
+
+/* the pre-data state: a spinner centred in the visual, nothing else */
+.dbx-landing {
+    background: transparent;
+    color: #252423;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .dbx-landing-inner {
+        padding: 0;
+        max-width: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .dbx-spinner {
+        width: 28px;
+        height: 28px;
+        border: 3px solid #E1E1E1;
+        border-top-color: #0183FF;
+        border-radius: 50%;
+        animation: dbx-spin 0.9s linear infinite;
+    }
+}
+
+@keyframes dbx-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* the old landing-page typography, kept for any other notice that uses it */
+.dbx-landing-legacy {
+    background: transparent;
+    color: #252423;
+    overflow: auto;
+    height: 100%;
+
+    .dbx-landing-inner {
+        padding: 12px 16px;
+        max-width: 560px;
+
+        h3 {
+            margin: 0 0 6px;
+            font-size: 13pt;
+            font-weight: 600;
+        }
+
+        p {
+            margin: 4px 0;
+            font-size: 9.5pt;
+        }
+
+        ul {
+            margin: 6px 0;
+            padding-left: 18px;
+            font-size: 9.5pt;
+        }
+
+        li {
+            margin-bottom: 3px;
+        }
+    }
+}
+
+.dbx-legend {
+    box-sizing: border-box;
+}
+
+/* ==================================================================== */
+/* table view - ported from tableDarwinbox/style/visual.less             */
+/* ==================================================================== */
+
+.dbx-table-container {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    position: relative;
+
+    .tabulator-table {
+        height: 100%;
+    }
+}
+
+.dbx-searchBar {
+    flex: 0 0 auto;
+    margin: 13px;
+    display: flex;
+    align-items: center;
+    height: 24px;
+    border: 1px solid #000;
+    background-color: #fff;
+    box-sizing: border-box;
+
+    .dbx-searchInput {
+        border: none;
+        border-left: 1px solid rgb(0, 0, 0);
+        width: 100%;
+        height: 100%;
+        outline: none;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+
+    &:hover {
+        border-style: dashed;
+
+        .dbx-searchInput {
+            border-left-style: dashed;
+        }
+    }
+}
+
+.dbx-searchIcon {
+    padding-left: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 100%;
+    margin-bottom: 0;
+    opacity: 0.7;
+
+    svg {
+        display: block;
+    }
+}
+
+/* --- tree chevrons ------------------------------------------------- */
+/* Tabulator injects dataTreeExpandElement / dataTreeCollapseElement verbatim,
+   so the chevron carries its own class rather than .tabulator-data-tree-control
+   (the reference visual styles .fa-chevron-up / .fa-chevron-down the same way) */
+.dbx-tree-chevron {
+    align-self: left;
+    margin-left: -8px;
+    padding-right: 6px;
+    display: inline-block;
+    vertical-align: middle;
+    cursor: pointer;
+    opacity: 0.75;
+}
+
+.dbx-tree-chevron:hover {
+    opacity: 1;
+}
+
+.tabulator-data-tree-control {
+    border: none;
+    background: transparent;
+}
+
+.lastChild-row .tabulator-data-tree-branch-empty {
+    padding-right: 20px;
+    display: inline-block;
+    width: 25px;
+}
+
+.parent-row {
+    position: relative;
+    font-size: 12px;
+}
+
+/* --- header -------------------------------------------------------- */
+.tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title {
+    white-space: normal;
+}
+
+.tabulator .tabulator-header .tabulator-col .tabulator-col-content {
+    padding: 12px;
+}
+
+.tabulator .tabulator-col {
+    font-weight: normal;
+}
+
+.tabulator-col.tabulator-row-header.tabulator-frozen {
+    border-right: 1px solid #dee2e6;
+}
+
+.tabulator-row .tabulator-cell.tabulator-frozen.tabulator-frozen-left {
+    padding: 12px;
+}
+
+.tabulator-row .tabulator-cell.tabulator-row-header {
+    padding-top: 13px;
+}
+
+input[type="checkbox" i] {
+    width: 7.8pt;
+}
+
+/* --- pagination footer --------------------------------------------- */
+.tabulator .tabulator-footer .tabulator-page[data-page="first"] {
+    display: none;
+}
+
+.tabulator .tabulator-footer .tabulator-page[data-page="last"] {
+    transform: translateX(-45px);
+    background-color: #faf7f7de;
+}
+
+.tabulator .tabulator-footer .tabulator-page[data-page="next"] {
+    margin-left: 10px;
+    transform: translateX(45px);
+    font-size: 10px;
+    background-color: #fff;
+}
+
+.tabulator .tabulator-footer .tabulator-page[data-page="prev"] {
+    font-size: 10px;
+    background-color: #fff;
+}
+
+.tabulator .tabulator-footer .tabulator-page {
+    background-color: #faf7f7de;
+    padding: 8px 12px;
+    font-size: 9pt;
+    margin-right: 10px;
+    border: 1px solid #4b0fe2 !important;
+    border-radius: 4px;
+}
+
+.tabulator .tabulator-footer .tabulator-page.active {
+    background-color: #0183ff;
+    color: #030112de;
+    font-size: 9pt;
+}
+
+.tabulator .tabulator-footer .tabulator-page:disabled {
+    opacity: 0.8;
+    color: #000;
+    font-size: 8pt;
+}
+
+.pageMore {
+    opacity: 0.8;
+    padding: 10px;
+    color: #0a0808;
+}
+
+.tabulator .tabulator-footer .tabulator-paginator {
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 400;
+    text-align: center;
+}
+
+.tabulator .tabulator-footer .tabulator-paginator > span.label {
+    display: inline;
+    float: right;
+    margin: 15px 1px;
+}
+
+.tabulator .tabulator-footer .tabulator-page-size {
+    float: right;
+    margin: 8px;
+    font-size: 12px;
+    padding: 3px;
+}
+
+.tabulator .tabulator-footer .tabulator-footer-contents {
+    align-items: baseline;
+}
+
+/* --- rows-per-page popup ------------------------------------------- */
+.dropdown-icon {
+    font-size: 11px;
+    margin-left: 7px;
+    opacity: 0.8;
+}
+
+.select {
+    position: relative;
+}
+
+.option {
+    width: 36px;
+    left: -3px;
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    background-color: #fff;
+    max-height: 150px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.custom-dropdown-option {
+    padding: 5px;
+    cursor: pointer;
+}
+
+.custom-dropdown-option:hover {
+    background-color: #0183ff;
+}
+
+/* vertical twin of .dbx-hscroll-*, used by the bar chart types */
+.dbx-vscroll-track {
+    flex: 0 0 auto;
+    position: relative;
+    margin-left: 2px;
+    margin-right: 2px;
+    background: #f3f2f1;
+    border-radius: 4px;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.dbx-vscroll-thumb {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-height: 24px;
+    background: #c8c6c4;
+    border-radius: 4px;
+    cursor: grab;
+}
+
+.dbx-vscroll-thumb:hover {
+    background: #a19f9d;
+}
+
+.dbx-vscroll-thumb:active {
+    background: #8a8886;
+    cursor: grabbing;
+}
+
+/* donut centre total */
+.dbx-donut-centre {
+    text-align: center;
+    pointer-events: none;
+}
+
+/* Top N box in the header: hide the spinners so it reads as the reference's
+   plain bordered number field */
+.dbx-topn {
+    text-align: center;
+    -moz-appearance: textfield;
+    appearance: textfield;
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+}
+
+/* insight banner */
+.dbx-insight-row {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.dbx-insight {
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* export action: on the search row when there is one, else its own thin strip */
+.dbx-table-actions {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: flex-end;
+    padding: 2px 6px;
+}
+
+.dbx-export-btn {
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid #C8C6C4;
+    border-radius: 3px;
+    padding: 2px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+        background: #F3F2F1;
+    }
+}

@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>dbxStackedColumn harness</title>
+<link rel="stylesheet" href="../.tmp/drop/visual.css" />
+<style>
+  body { margin: 0; font-family: "Segoe UI", sans-serif; background: #f5f5f5; }
+  #host { width: 700px; height: 470px; background: #fff; margin: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+</style>
+</head>
+<body>
+<div id="host"></div>
+<script>
+/* ------------------------------------------------------------------ */
+/* minimal Power BI host stub                                          */
+/* ------------------------------------------------------------------ */
+window.powerbi = { visuals: { plugins: {} } };
+
+const PALETTE = ["#0B6BCB", "#F2C811", "#118DFF", "#E66C37", "#6B007B", "#12239E", "#118DFF"];
+let colorIdx = 0;
+const colorMap = {};
+
+let keySeq = 0;
+function makeSelectionId(key) {
+  return {
+    _k: key,
+    getKey: () => key,
+    getSelector: () => ({ data: [{ k: key }] }),
+    equals: (o) => o && o.getKey && o.getKey() === key,
+    includes: (o) => o && o.getKey && o.getKey() === key
+  };
+}
+
+function selectionIdBuilder() {
+  const parts = [];
+  const b = {
+    withCategory: (cat, i) => { parts.push("c" + i); return b; },
+    withSeries: (cols, g) => { parts.push("s" + (g && g.name)); return b; },
+    withMeasure: (q) => { parts.push("m" + q); return b; },
+    createSelectionId: () => makeSelectionId(parts.join("|") || "k" + (keySeq++))
+  };
+  return b;
+}
+
+window.__selectionState = [];
+
+const host = {
+  createSelectionManager: () => ({
+    getSelectionIds: () => window.__selectionState,
+    select: (ids, multi) => { window.__selectionState = multi ? window.__selectionState.concat(ids) : ids; return Promise.resolve(ids); },
+    clear: () => { window.__selectionState = []; return Promise.resolve(); },
+    registerOnSelectCallback: () => {},
+    showContextMenu: () => Promise.resolve(),
+    hasSelection: () => window.__selectionState.length > 0
+  }),
+  createSelectionIdBuilder: selectionIdBuilder,
+  colorPalette: {
+    isHighContrast: false,
+    foreground: { value: "#000000" },
+    background: { value: "#FFFFFF" },
+    foregroundSelected: { value: "#0B6BCB" },
+    getColor: (k) => {
+      if (!colorMap[k]) { colorMap[k] = { value: PALETTE[colorIdx++ % PALETTE.length] }; }
+      return colorMap[k];
+    }
+  },
+  eventService: {
+    renderingStarted: () => {},
+    renderingFinished: () => { window.__rendered = true; },
+    renderingFailed: (o, r) => { window.__renderError = r; }
+  },
+  downloadService: {
+    exportVisualsContent: (content, fileName, fileType) => {
+      window.__exported = { content: content, fileName: fileName, fileType: fileType };
+      return Promise.resolve(true);
+    }
+  },
+  tooltipService: {
+    enabled: () => true,
+    show: (o) => { window.__lastTooltip = o; (window.__tooltipLog = window.__tooltipLog || []).push({ op: "show", n: (o.dataItems||[]).length }); },
+    move: (o) => { window.__lastMove = o; (window.__tooltipLog = window.__tooltipLog || []).push({ op: "move", n: (o.dataItems||[]).length }); },
+    hide: () => { (window.__tooltipLog = window.__tooltipLog || []).push({ op: "hide" }); }
+  },
+  persistProperties: (c) => { window.__persisted = c; },
+  fetchMoreData: () => false,
+  hostCapabilities: { allowInteractions: true },
+  locale: "en-US",
+  applyJsonFilter: (filter, objectName, propertyName, action) => {
+    window.__filters = { filter: filter, objectName: objectName, propertyName: propertyName, action: action };
+    (window.__filterLog = window.__filterLog || []).push(window.__filters);
+  },
+  launchUrl: () => {},
+  refreshHostData: () => {},
+  displayWarningIcon: () => {},
+  storageService: { get: () => Promise.reject(), set: () => Promise.reject() },
+  telemetry: { trace: () => {} },
+  switchFocusModeState: () => {},
+  createLocalizationManager: () => ({ getDisplayName: (k) => k })
+};
+
+/* ------------------------------------------------------------------ */
+/* synthetic dataview shaped like the Headcount Snapshot report        */
+/* ------------------------------------------------------------------ */
+const DEPTS = [
+  ["Finance/Accounts", 221], ["Engineering", 55], ["IOS", 46], ["AZ20 Upd", 36],
+  ["Test Department", 30], ["ZYDUS T", 28], ["yashwanth", 27], ["Dept XX1", 26],
+  ["Human Resources", 22], ["Marketing", 19], ["Legal", 14], ["Support", 11]
+];
+const LOCATIONS = ["Hyderabad", "Bengaluru", "Mumbai", "Remote"];
+const DATES = [new Date(2024, 3, 1), new Date(2024, 9, 1), new Date(2025, 3, 1), new Date(2025, 9, 1), new Date(2026, 3, 1)];
+const GROUPS = ["Permanent", "Contract"];
+
+const deptVals = [], locVals = [], dateVals = [];
+const groupValues = GROUPS.map(() => []);
+const tooltipValues = GROUPS.map(() => []);
+
+let r = 0;
+DEPTS.forEach((d, di) => {
+  LOCATIONS.forEach((loc, li) => {
+    DATES.forEach((dt, ti) => {
+      deptVals.push(d[0]);
+      locVals.push(loc);
+      dateVals.push(dt);
+      const base = d[1] / LOCATIONS.length;
+      const drift = 1 + (ti - 2) * 0.02 + (li - 1.5) * 0.05;
+      groupValues[0].push(Math.round(base * 0.72 * drift));
+      groupValues[1].push(Math.round(base * 0.28 * drift));
+      tooltipValues[0].push(Math.round(base * 0.05));
+      tooltipValues[1].push(Math.round(base * 0.03));
+      r++;
+    });
+  });
+});
+
+function cat(name, queryName, role, values, type) {
+  return {
+    source: { displayName: name, queryName, roles: { [role]: true }, type: type || { text: true }, index: 0 },
+    values,
+    identity: values.map((_, i) => ({ i }))
+  };
+}
+
+const categories = [
+  cat("Department", "Function Mapping.Department", "dimension", deptVals),
+  cat("Location", "Employee Attributes.Location", "dimension", locVals),
+  cat("Month", "Calendar.Date", "date", dateVals, { dateTime: true })
+];
+
+/* ---- reproduce the duplicate-dimension bug -------------------------
+   Group Company + Department are in Dimensions and ALSO in Table columns.
+   Power BI projects each field once per well and puts both roles on every
+   copy, so `categories` ends up with four entries carrying dimension. ---- */
+window.__duplicateRoleFields = function () {
+  const gcVals = deptVals.map((d) => "GC " + d.slice(0, 3));
+  const both = { dimension: true, tableColumns: true };
+  const mk = (name, qn, values) => ({
+    source: { displayName: name, queryName: qn, roles: both, type: { text: true }, index: 0 },
+    values,
+    identity: values.map((_, i) => ({ i }))
+  });
+  // wipe the default dimension columns and rebuild the duplicated projection
+  categories.length = 0;
+  categories.push(mk("Group Company", "Function Mapping.Group Company", gcVals));
+  categories.push(mk("Department", "Function Mapping.Department", deptVals));
+  categories.push(cat("Month", "Calendar.Date", "date", dateVals, { dateTime: true }));
+  categories.push(mk("Group Company", "Function Mapping.Group Company", gcVals));
+  categories.push(mk("Department", "Function Mapping.Department", deptVals));
+  dataView.metadata.columns = categories.map((c) => c.source).concat(valueColumns.map((v) => v.source));
+};
+
+/* ---- X axis / Y axis / Size measures, for the scatter type ----------
+   Attrition % against average tenure, sized by headcount, one point per
+   department. `withLegend` keeps the Permanent/Contract split so a scatter with
+   a legend can be exercised too. -------------------------------------- */
+window.__scatterMeasures = function (withLegend) {
+  const hc = [], attr = [], tenure = [];
+  for (let i = 0; i < groupValues[0].length; i++) {
+    const t = groupValues[0][i] + groupValues[1][i];
+    hc.push(t);
+    /* a spread that is not a straight line, so a diagonal would be a bug */
+    attr.push(Math.round(((i * 37) % 23) + 4) / 100);
+    tenure.push(Math.round((((i * 17) % 41) + 9) / 4 * 10) / 10);
+  }
+  const mk = (name, qn, role, values, format) => ({
+    source: { displayName: name, queryName: qn, roles: { [role]: true },
+              format: format, isMeasure: true },
+    values: values
+  });
+  valueColumns.length = 0;
+  if (withLegend) {
+    GROUPS.forEach((g, gi) => {
+      valueColumns.push({
+        source: { displayName: "Ending Headcount", queryName: "Calculations.Ending Headcount",
+                  roles: { measure: true }, format: "#,0", groupName: g, isMeasure: true },
+        values: groupValues[gi]
+      });
+      valueColumns.push({
+        source: { displayName: "Attrition %", queryName: "Calculations.Attrition %",
+                  roles: { xMeasure: true }, format: "0.0%", groupName: g, isMeasure: true },
+        values: attr.map((v) => (gi ? v * 1.6 : v))
+      });
+      valueColumns.push({
+        source: { displayName: "Avg Tenure (Yrs)", queryName: "Calculations.Avg Tenure",
+                  roles: { yMeasure: true }, format: "0.0", groupName: g, isMeasure: true },
+        values: tenure.map((v) => (gi ? v * 0.6 : v))
+      });
+    });
+    valueColumns.source = {
+      displayName: "Employment Type",
+      queryName: "Employee Attributes.Employement Type",
+      roles: { legend: true }
+    };
+    valueColumns.grouped = function () {
+      return GROUPS.map((g, gi) => ({
+        name: g,
+        identity: { g },
+        values: [valueColumns[gi * 3], valueColumns[gi * 3 + 1], valueColumns[gi * 3 + 2]]
+      }));
+    };
+  } else {
+    valueColumns.push(mk("Attrition %", "Calculations.Attrition %", "xMeasure", attr, "0.0%"));
+    valueColumns.push(mk("Avg Tenure (Yrs)", "Calculations.Avg Tenure", "yMeasure", tenure, "0.0"));
+    valueColumns.push(mk("Ending Headcount", "Calculations.Ending Headcount", "sizeMeasure", hc, "#,0"));
+    delete valueColumns.source;
+    valueColumns.grouped = function () { return [{ name: undefined, values: valueColumns.slice() }]; };
+  }
+  dataView.metadata.columns = categories.map((c) => c.source).concat(valueColumns.map((v) => v.source));
+};
+
+/* ---- swap in a high-cardinality dimension to exercise scrolling ---- */
+/* single-series trend, like the "Headcount Trend" reference */
+window.__singleSeries = function (scale) {
+  const total = [];
+  for (let i = 0; i < groupValues[0].length; i++) total.push(groupValues[0][i] + groupValues[1][i]);
+  valueColumns.length = 0;
+  valueColumns.push({
+    source: { displayName: "Employee Count", queryName: "Calculations.Ending Headcount",
+              roles: { measure: true }, format: "#,0", isMeasure: true },
+    values: total.map((v) => Math.round(v * (scale || 1)))
+  });
+  delete valueColumns.source;
+  valueColumns.grouped = function () { return [{ name: undefined, values: [valueColumns[0]] }]; };
+  dataView.metadata.columns = categories.map((c) => c.source).concat(valueColumns.map((v) => v.source));
+};
+
+/* two independent measures, like "Trend of New Hires and Exits" */
+window.__twoMeasures = function () {
+  const hires = [], exits = [];
+  for (let i = 0; i < groupValues[0].length; i++) {
+    hires.push(Math.round(groupValues[0][i] * 1.4));
+    exits.push(Math.round(groupValues[1][i] * 0.08));
+  }
+  valueColumns.length = 0;
+  valueColumns.push({
+    source: { displayName: "New Hires", queryName: "Calculations.New Hires",
+              roles: { measure: true }, format: "#,0", isMeasure: true },
+    values: hires
+  });
+  valueColumns.push({
+    source: { displayName: "Exits", queryName: "Calculations.Exits",
+              roles: { measure: true }, format: "#,0", isMeasure: true },
+    values: exits
+  });
+  delete valueColumns.source;
+  valueColumns.grouped = function () { return [{ name: undefined, values: valueColumns.slice() }]; };
+  dataView.metadata.columns = categories.map((c) => c.source).concat(valueColumns.map((v) => v.source));
+};
+
+/* column measure(s) plus a Line values measure, like "Leave Count and Leave %" */
+window.__comboMeasures = function (nColumns) {
+  const count = [], count2 = [], pct = [];
+  for (let i = 0; i < groupValues[0].length; i++) {
+    const a = groupValues[0][i], b = groupValues[1][i];
+    count.push(a + b);
+    count2.push(Math.round((a + b) * 0.6));
+    pct.push(a / (a + b + 1));
+  }
+  valueColumns.length = 0;
+  valueColumns.push({
+    source: { displayName: "Leave Count", queryName: "Calculations.Leave Count",
+              roles: { measure: true }, format: "#,0.0", isMeasure: true },
+    values: count
+  });
+  if ((nColumns || 1) > 1) {
+    valueColumns.push({
+      source: { displayName: "Count of Designation", queryName: "Calculations.Designation Count",
+                roles: { measure: true }, format: "#,0", isMeasure: true },
+      values: count2
+    });
+  }
+  valueColumns.push({
+    source: { displayName: "Leave %", queryName: "Calculations.Leave Pct",
+              roles: { lineMeasure: true }, format: "0.0%", isMeasure: true },
+    values: pct
+  });
+  delete valueColumns.source;
+  valueColumns.grouped = function () { return [{ name: undefined, values: valueColumns.slice() }]; };
+  dataView.metadata.columns = categories.map((c) => c.source).concat(valueColumns.map((v) => v.source));
+};
+
+/* one percentage measure, like "Conversion % by Gender" */
+window.__ratioMeasure = function () {
+  const pct = [];
+  for (let i = 0; i < groupValues[0].length; i++) {
+    pct.push(groupValues[1][i] / (groupValues[0][i] + groupValues[1][i] + 1) * 0.3);
+  }
+  valueColumns.length = 0;
+  valueColumns.push({
+    source: { displayName: "Conversion %", queryName: "Calculations.Conversion Pct",
+              roles: { measure: true }, format: "0.0%", isMeasure: true },
+    values: pct
+  });
+  delete valueColumns.source;
+  valueColumns.grouped = function () { return [{ name: undefined, values: [valueColumns[0]] }]; };
+  dataView.metadata.columns = categories.map((c) => c.source).concat(valueColumns.map((v) => v.source));
+};
+
+/* a measure returning the insight sentence, as an "Insight text" well would */
+window.__addInsight = function (sentence) {
+  const txt = sentence || "'Finance/Accounts' department had the highest number of exits (19). This contributed to 55.9% of total exits.";
+  valueColumns.push({
+    source: { displayName: "Insight", queryName: "Calculations.Insight",
+              roles: { insight: true }, isMeasure: true },
+    values: deptVals.map(() => txt)
+  });
+  dataView.metadata.columns = categories.map((c) => c.source).concat(valueColumns.map((v) => v.source));
+};
+
+/* per-granularity label columns, e.g. "Q1 Apr-Jun 24-25" for the Quarterly button */
+window.__addGranularityLabels = function () {
+  const QSPAN = ["Apr-Jun", "Jul-Sep", "Oct-Dec", "Jan-Mar"];
+  const ann = [], qtr = [], mon = [];
+  const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  for (let i = 0; i < dateVals.length; i++) {
+    const d = dateVals[i];
+    const m = d.getMonth();
+    const fyStart = m >= 3 ? d.getFullYear() : d.getFullYear() - 1;
+    const fy = String(fyStart).slice(2) + "-" + String(fyStart + 1).slice(2);
+    const q = Math.floor(((m - 3 + 12) % 12) / 3);
+    ann.push("FY " + fy);
+    qtr.push("Q" + (q + 1) + " " + QSPAN[q] + " " + fy);
+    mon.push(MON[m] + " " + fy);
+  }
+  categories.push(cat("Annual Label", "Calendar.Annual Label", "annualLabel", ann));
+  categories.push(cat("Quarter Label", "Calendar.Quarter Label", "quarterlyLabel", qtr));
+  categories.push(cat("Month Label", "Calendar.Month Label", "monthlyLabel", mon));
+  dataView.metadata.columns = categories.map((c) => c.source).concat(valueColumns.map((v) => v.source));
+};
+
+/* drop the Date field, leaving only the label columns to drive the buttons */
+window.__dropDate = function () {
+  for (let i = categories.length - 1; i >= 0; i--) {
+    if (categories[i].source.roles.date) categories.splice(i, 1);
+  }
+  dataView.metadata.columns = categories.map((c) => c.source).concat(valueColumns.map((v) => v.source));
+};
+
+/* fields in the dedicated "Dimensions 2" well rather than the Dimensions bucket */
+window.__addDimension2Well = function () {
+  const bandVals = deptVals.map((d, i) => ["Band A", "Band B", "Band C"][i % 3]);
+  categories.push(cat("Gender", "Employee Attributes.Gender", "dimension2",
+    deptVals.map((d, i) => (i % 2 ? "Female" : "Male"))));
+  categories.push(cat("Band", "Employee Attributes.Band", "dimension2", bandVals));
+  dataView.metadata.columns = categories.map((c) => c.source).concat(valueColumns.map((v) => v.source));
+};
+
+/* the same field in both wells, so the mutual exclusion has something to hide */
+window.__sharedDimension2 = function () {
+  const both = { dimension: true, dimension2: true };
+  categories.forEach((c) => {
+    if (c.source.roles.dimension) c.source.roles = Object.assign({}, c.source.roles, both);
+  });
+  dataView.metadata.columns = categories.map((c) => c.source).concat(valueColumns.map((v) => v.source));
+};
+
+/*
+ * Re-order every row consistently, the way Power BI does when the query changes
+ * shape - which is what adding a Table rows / Table columns field does. The chart
+ * must read identically before and after.
+ */
+window.__shuffleRows = function (seed) {
+  const n = deptVals.length;
+  const order = [];
+  for (let i = 0; i < n; i++) order.push(i);
+  let x = (seed || 1) * 2654435761 % 2147483647;
+  for (let i = n - 1; i > 0; i--) {
+    x = (x * 48271) % 2147483647;
+    const j = x % (i + 1);
+    const t = order[i]; order[i] = order[j]; order[j] = t;
+  }
+  /* several columns can share one array (a field mapped into two wells passes the
+     same reference), so permute each distinct array exactly once */
+  const done = [];
+  const permute = (arr) => {
+    if (!arr || arr.length !== n || done.indexOf(arr) >= 0) return;
+    done.push(arr);
+    const copy = order.map((k) => arr[k]);
+    for (let i = 0; i < n; i++) arr[i] = copy[i];
+  };
+  categories.forEach((c) => { permute(c.values); permute(c.identity); });
+  valueColumns.forEach((v) => { permute(v.values); permute(v.highlights); });
+};
+
+/* tenure-bucket labels, where text order and numeric order disagree */
+window.__bucketCategories = function () {
+  const B = ["0-1", "1-2", "2-5", "5-10", "10-20", "20-30", "30+"];
+  for (let i = 0; i < deptVals.length; i++) deptVals[i] = B[i % B.length];
+  categories[0].source.displayName = "Tenure (Yrs)";
+};
+
+/*
+ * Reproduce the shape of the real report that exposed the count mismatch: an
+ * "Ending Headcount" measure that returns 1 for employees active at a date and 0
+ * for the rest, at (employee x date) grain. The bar totals the actives at the last
+ * date; the table must list exactly those people, not everyone who ever appeared.
+ */
+window.__pointInTimeMeasure = function () {
+  const empVals = [], exitIdx = [];
+  const N_EMP = 40;
+  const names = [];
+  for (let i = 0; i < N_EMP; i++) names.push("Emp " + String(i + 1).padStart(3, "0"));
+  categories.length = 0;
+  const dept = [], dates = [], emps = [];
+  const vals = [];
+  /* each employee joins at date 0 and some leave partway through */
+  for (let e = 0; e < N_EMP; e++) {
+    const leavesAfter = e < 10 ? 2 : DATES.length;   // 10 people gone by the end
+    for (let d = 0; d < DATES.length; d++) {
+      dept.push(e % 2 ? "Finance/Accounts" : "Engineering");
+      dates.push(DATES[d]);
+      emps.push(names[e] + " (E" + (1000 + e) + ")");
+      vals.push(d < leavesAfter ? 1 : 0);
+    }
+  }
+  categories.push(cat("Department", "Function Mapping.Department", "dimension", dept));
+  categories.push(cat("Month", "Calendar.Date", "date", dates, { dateTime: true }));
+  categories.push(cat("Employee Name", "Employee Attributes.Employee Name", "tableRows", emps));
+  valueColumns.length = 0;
+  valueColumns.push({
+    source: { displayName: "Ending Headcount", queryName: "Calculations.Ending Headcount",
+              roles: { measure: true }, format: "#,0", isMeasure: true },
+    values: vals
+  });
+  delete valueColumns.source;
+  valueColumns.grouped = function () { return [{ name: undefined, values: [valueColumns[0]] }]; };
+  dataView.metadata.columns = categories.map((c) => c.source).concat(valueColumns.map((v) => v.source));
+  /* what the answer should be: actives at the LAST date, per department */
+  window.__expected = (function () {
+    const out = {};
+    for (let e = 0; e < N_EMP; e++) {
+      const leavesAfter = e < 10 ? 2 : DATES.length;
+      if (leavesAfter < DATES.length) continue;
+      const d = e % 2 ? "Finance/Accounts" : "Engineering";
+      out[d] = (out[d] || 0) + 1;
+    }
+    return out;
+  })();
+};
+
+window.__manyCategories = function (n) {
+  const names = [];
+  for (let i = 0; i < n; i++) names.push(`Department ${String(i + 1).padStart(2, "0")}`);
+  for (let i = 0; i < deptVals.length; i++) {
+    deptVals[i] = names[i % n];
+  }
+};
+
+/* ---- optional detail-table wells (Table rows / Table columns) ------ */
+window.__addDetailFields = function () {
+  const empVals = [], desigVals = [], dojVals = [], mgrVals = [];
+  const DESIGS = ["Analyst", "Senior Analyst", "Manager", "Director"];
+  const MGRS = ["Alok Alok", "Shetty B", "R Kumar"];
+  for (let i = 0; i < deptVals.length; i++) {
+    // employee identity is stable per (department, location) so the grain is
+    // employee-level while the attributes ride along for free
+    const di = DEPTS.findIndex((d) => d[0] === deptVals[i]);
+    const li = LOCATIONS.indexOf(locVals[i]);
+    const empNo = di * LOCATIONS.length + li;
+    empVals.push(`Emp ${String(empNo + 1).padStart(3, "0")} (CH${3900 + empNo})`);
+    desigVals.push(DESIGS[empNo % DESIGS.length]);
+    dojVals.push(new Date(2019 + (empNo % 5), (empNo * 3) % 12, 1 + (empNo % 27)));
+    mgrVals.push(MGRS[empNo % MGRS.length]);
+  }
+  categories.push(cat("Employee Name", "Employee Attributes.Employee Name", "tableRows", empVals));
+  categories.push(cat("Department", "Function Mapping.Department (t)", "tableColumns", deptVals));
+  categories.push(cat("Designation", "Employee Attributes.Designation", "tableColumns", desigVals));
+  const dojCol = cat("Date of Joining", "Employee Attributes.DOJ", "tableColumns", dojVals, { dateTime: true });
+  dojCol.source.format = "dddd, MMMM d, yyyy";
+  categories.push(dojCol);
+  categories.push(cat("L1 Manager", "Employee Attributes.L1 Manager", "tableColumns", mgrVals));
+  dataView.metadata.columns = categories.map((c) => c.source).concat(valueColumns.map((v) => v.source));
+};
+
+const valueColumns = [];
+GROUPS.forEach((g, gi) => {
+  valueColumns.push({
+    source: {
+      displayName: "Ending Headcount",
+      queryName: "Calculations.Ending Headcount",
+      roles: { measure: true },
+      format: "#,0",
+      groupName: g,
+      isMeasure: true
+    },
+    values: groupValues[gi]
+  });
+  valueColumns.push({
+    source: {
+      displayName: "Added Employees",
+      queryName: "Calculations.Added Employees",
+      roles: { tooltip: true },
+      format: "#,0",
+      groupName: g,
+      isMeasure: true
+    },
+    values: tooltipValues[gi]
+  });
+});
+
+valueColumns.source = {
+  displayName: "Employment Type",
+  queryName: "Employee Attributes.Employement Type",
+  roles: { legend: true }
+};
+valueColumns.grouped = function () {
+  return GROUPS.map((g, gi) => ({
+    name: g,
+    identity: { g },
+    values: [valueColumns[gi * 2], valueColumns[gi * 2 + 1]]
+  }));
+};
+
+const dataView = {
+  metadata: { columns: categories.map((c) => c.source).concat(valueColumns.map((v) => v.source)) },
+  categorical: { categories, values: valueColumns }
+};
+
+window.__dataView = dataView;
+window.__host = host;
+window.__viewport = { width: 700, height: 470 };
+
+window.__boot = function () {
+  const plugin = window.powerbi.visuals.plugins.dbxStackedColumnE4A17C2B9D3F4A16B0C8D5E7F1A2B3C4;
+  const el = document.getElementById("host");
+  window.__visual = plugin.create({ element: el, host: host });
+  window.__update();
+};
+
+window.__update = function () {
+  window.__visual.update({
+    dataViews: [window.__dataView],
+    viewport: window.__viewport,
+    type: 2,
+    operationKind: 0,
+    viewMode: 1,
+    editMode: 0,
+    isInFocus: false,
+    jsonFilters: []
+  });
+};
+</script>
+<script src="../.tmp/drop/visual.js"></script>
+<script>window.__boot();</script>
+</body>
+</html>

@@ -1,0 +1,404 @@
+[
+  {
+    "id": "1.1",
+    "name": "Remove fields in order [measure, legend, date, dimension]",
+    "ok": true,
+    "detail": "measure:ok, legend:ok, date:ok, dimension:ok"
+  },
+  {
+    "id": "1.2",
+    "name": "Remove fields in order [dimension, date, legend, measure]",
+    "ok": true,
+    "detail": "dimension:ok, date:ok, legend:ok, measure:ok"
+  },
+  {
+    "id": "1.3",
+    "name": "Remove fields in order [legend, measure, dimension, date]",
+    "ok": true,
+    "detail": "legend:ok, measure:ok, dimension:ok, date:ok"
+  },
+  {
+    "id": "1.4",
+    "name": "Remove fields in order [date, dimension, measure, legend]",
+    "ok": true,
+    "detail": "date:ok, dimension:ok, measure:ok, legend:ok"
+  },
+  {
+    "id": "2.1",
+    "name": "Format pane opens with no data view at all",
+    "ok": true,
+    "detail": "23 cards"
+  },
+  {
+    "id": "2.2",
+    "name": "Format pane opens with categories but no values",
+    "ok": true,
+    "detail": "19 cards"
+  },
+  {
+    "id": "2.3",
+    "name": "Format pane opens with values but no categories",
+    "ok": true,
+    "detail": "19 cards"
+  },
+  {
+    "id": "2.4",
+    "name": "Format pane opens with everything mapped",
+    "ok": true,
+    "detail": "23 cards"
+  },
+  {
+    "id": "3.1",
+    "name": "nulls in the measure — stackedColumn",
+    "ok": true,
+    "detail": "0 nodes drawn"
+  },
+  {
+    "id": "3.1",
+    "name": "nulls in the measure — line",
+    "ok": true,
+    "detail": "0 nodes drawn"
+  },
+  {
+    "id": "3.1",
+    "name": "nulls in the measure — donut",
+    "ok": true,
+    "detail": "0 nodes drawn"
+  },
+  {
+    "id": "3.1",
+    "name": "nulls in the measure — scatter",
+    "ok": true,
+    "detail": "0 nodes drawn"
+  },
+  {
+    "id": "3.1",
+    "name": "nulls in the measure — percentArea",
+    "ok": true,
+    "detail": "0 nodes drawn"
+  },
+  {
+    "id": "3.2",
+    "name": "all zeroes — stackedColumn",
+    "ok": true,
+    "detail": "56 nodes drawn"
+  },
+  {
+    "id": "3.2",
+    "name": "all zeroes — line",
+    "ok": true,
+    "detail": "96 nodes drawn"
+  },
+  {
+    "id": "3.2",
+    "name": "all zeroes — donut",
+    "ok": true,
+    "detail": "0 nodes drawn"
+  },
+  {
+    "id": "3.2",
+    "name": "all zeroes — scatter",
+    "ok": true,
+    "detail": "38 nodes drawn"
+  },
+  {
+    "id": "3.2",
+    "name": "all zeroes — percentArea",
+    "ok": true,
+    "detail": "86 nodes drawn"
+  },
+  {
+    "id": "3.3",
+    "name": "negative values — stackedColumn",
+    "ok": true,
+    "detail": "63 nodes drawn"
+  },
+  {
+    "id": "3.3",
+    "name": "negative values — line",
+    "ok": true,
+    "detail": "101 nodes drawn"
+  },
+  {
+    "id": "3.3",
+    "name": "negative values — donut",
+    "ok": true,
+    "detail": "0 nodes drawn"
+  },
+  {
+    "id": "3.3",
+    "name": "negative values — scatter",
+    "ok": true,
+    "detail": "44 nodes drawn"
+  },
+  {
+    "id": "3.3",
+    "name": "negative values — percentArea",
+    "ok": true,
+    "detail": "93 nodes drawn"
+  },
+  {
+    "id": "3.4",
+    "name": "Infinity and NaN — stackedColumn",
+    "ok": true,
+    "detail": "90 nodes drawn"
+  },
+  {
+    "id": "3.4",
+    "name": "Infinity and NaN — line",
+    "ok": true,
+    "detail": "105 nodes drawn"
+  },
+  {
+    "id": "3.4",
+    "name": "Infinity and NaN — donut",
+    "ok": true,
+    "detail": "92 nodes drawn"
+  },
+  {
+    "id": "3.4",
+    "name": "Infinity and NaN — scatter",
+    "ok": true,
+    "detail": "56 nodes drawn"
+  },
+  {
+    "id": "3.4",
+    "name": "Infinity and NaN — percentArea",
+    "ok": true,
+    "detail": "110 nodes drawn"
+  },
+  {
+    "id": "3.5",
+    "name": "strings where numbers belong — stackedColumn",
+    "ok": true,
+    "detail": "0 nodes drawn"
+  },
+  {
+    "id": "3.5",
+    "name": "strings where numbers belong — line",
+    "ok": true,
+    "detail": "0 nodes drawn"
+  },
+  {
+    "id": "3.5",
+    "name": "strings where numbers belong — donut",
+    "ok": true,
+    "detail": "0 nodes drawn"
+  },
+  {
+    "id": "3.5",
+    "name": "strings where numbers belong — scatter",
+    "ok": true,
+    "detail": "0 nodes drawn"
+  },
+  {
+    "id": "3.5",
+    "name": "strings where numbers belong — percentArea",
+    "ok": true,
+    "detail": "0 nodes drawn"
+  },
+  {
+    "id": "3.6",
+    "name": "one enormous outlier — stackedColumn",
+    "ok": true,
+    "detail": "92 nodes drawn"
+  },
+  {
+    "id": "3.6",
+    "name": "one enormous outlier — line",
+    "ok": true,
+    "detail": "96 nodes drawn"
+  },
+  {
+    "id": "3.6",
+    "name": "one enormous outlier — donut",
+    "ok": true,
+    "detail": "92 nodes drawn"
+  },
+  {
+    "id": "3.6",
+    "name": "one enormous outlier — scatter",
+    "ok": true,
+    "detail": "40 nodes drawn"
+  },
+  {
+    "id": "3.6",
+    "name": "one enormous outlier — percentArea",
+    "ok": true,
+    "detail": "110 nodes drawn"
+  },
+  {
+    "id": "3.7",
+    "name": "very small fractions — stackedColumn",
+    "ok": true,
+    "detail": "90 nodes drawn"
+  },
+  {
+    "id": "3.7",
+    "name": "very small fractions — line",
+    "ok": true,
+    "detail": "94 nodes drawn"
+  },
+  {
+    "id": "3.7",
+    "name": "very small fractions — donut",
+    "ok": true,
+    "detail": "92 nodes drawn"
+  },
+  {
+    "id": "3.7",
+    "name": "very small fractions — scatter",
+    "ok": true,
+    "detail": "35 nodes drawn"
+  },
+  {
+    "id": "3.7",
+    "name": "very small fractions — percentArea",
+    "ok": true,
+    "detail": "110 nodes drawn"
+  },
+  {
+    "id": "3.8.0",
+    "name": "0 row result set",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "id": "3.8.1",
+    "name": "1 row result set",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "id": "3.8.2",
+    "name": "2 row result set",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "id": "4.1280x720",
+    "name": "Renders at 1280x720",
+    "ok": true,
+    "detail": "35 marks"
+  },
+  {
+    "id": "4.640x480",
+    "name": "Renders at 640x480",
+    "ok": true,
+    "detail": "35 marks"
+  },
+  {
+    "id": "4.320x240",
+    "name": "Renders at 320x240",
+    "ok": true,
+    "detail": "35 marks"
+  },
+  {
+    "id": "4.200x120",
+    "name": "Renders at 200x120",
+    "ok": true,
+    "detail": "35 marks"
+  },
+  {
+    "id": "4.120x80",
+    "name": "Renders at 120x80",
+    "ok": true,
+    "detail": "35 marks"
+  },
+  {
+    "id": "4.1600x300",
+    "name": "Renders at 1600x300",
+    "ok": true,
+    "detail": "35 marks"
+  },
+  {
+    "id": "4.300x900",
+    "name": "Renders at 300x900",
+    "ok": true,
+    "detail": "35 marks"
+  },
+  {
+    "id": "5.1",
+    "name": "Four instances on one page",
+    "ok": true,
+    "detail": "svg per instance: 7, 7, 7"
+  },
+  {
+    "id": "6.1",
+    "name": "Format string #,0 at 0 dp, units 1",
+    "ok": true,
+    "detail": "[\"0\",\"200\",\"400\",\"600\",\"800\",\"1,000\"]"
+  },
+  {
+    "id": "6.2",
+    "name": "Format string #,0.000 at 3 dp, units 1",
+    "ok": true,
+    "detail": "[\"0.000\",\"200.000\",\"400.000\",\"600.000\",\"800.000\",\"1,000.000\"]"
+  },
+  {
+    "id": "6.3",
+    "name": "Format string 0.00% at 2 dp, units 1",
+    "ok": true,
+    "detail": "[\"0.00%\",\"20000.00%\",\"40000.00%\",\"60000.00%\",\"80000.00%\",\"100000.00%\"]"
+  },
+  {
+    "id": "6.4",
+    "name": "Format string \\$#,0;(\\$#,0) at 0 dp, units 1",
+    "ok": true,
+    "detail": "[\"$0\",\"$200\",\"$400\",\"$600\",\"$800\",\"$1,000\"]"
+  },
+  {
+    "id": "6.5",
+    "name": "Format string #,0 at 0 dp, units 1000",
+    "ok": true,
+    "detail": "[\"0K\",\"0K\",\"0K\",\"1K\",\"1K\",\"1K\"]"
+  },
+  {
+    "id": "7.1",
+    "name": "Ctrl / Shift click adds marks, background clears",
+    "ok": true,
+    "detail": "dimmed after 1/2/3 marks then clear: 23/22/21/0 of 24"
+  },
+  {
+    "id": "7.2",
+    "name": "Marks are keyboard focusable and Enter selects",
+    "ok": true,
+    "detail": "24 focusable, 23 dimmed after Enter"
+  },
+  {
+    "id": "8.200",
+    "name": "200 categories renders in reasonable time",
+    "ok": true,
+    "detail": "40 ms"
+  },
+  {
+    "id": "8.2000",
+    "name": "2000 categories renders in reasonable time",
+    "ok": true,
+    "detail": "26 ms"
+  },
+  {
+    "id": "8.10000",
+    "name": "10000 categories renders in reasonable time",
+    "ok": true,
+    "detail": "26 ms"
+  },
+  {
+    "id": "8.table",
+    "name": "Table view renders at detail grain",
+    "ok": true,
+    "detail": "9 ms, 0 rows on the page"
+  },
+  {
+    "id": "9.1",
+    "name": "No data view shows the landing state, not an error",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "id": "10.1",
+    "name": "High-contrast mode redraws in the host palette",
+    "ok": true,
+    "detail": "fills: [\"#000000\"]"
+  }
+]

@@ -1,0 +1,24 @@
+{
+  "visual": {
+    "name": "dbxStackedColumn",
+    "displayName": "Darwinbox Visualizer",
+    "guid": "dbxStackedColumnE4A17C2B9D3F4A16B0C8D5E7F1A2B3C4",
+    "visualClassName": "Visual",
+    "version": "4.5.0.1",
+    "description": "One chart visual with fifteen chart types (stacked / 100% / clustered column, bar, stacked bar, 100% stacked bar, line, area, stacked area, 100% stacked area, scatter, two combos, ribbon, donut) plus a built-in dimension selector, Monthly/Quarterly/Annual switch and chart/table toggle. Chart type is a setting and the field wells and table view are the same for every type. Removes the need for bookmarks, field-parameter slicers and layered shapes.",
+    "supportUrl": "https://darwinbox.com/contact-us",
+    "gitHubUrl": ""
+  },
+  "apiVersion": "5.11.0",
+  "author": {
+    "name": "Darwinbox People Analytics",
+    "email": "lokesh.l@darwinbox.in"
+  },
+  "assets": {
+    "icon": "assets/icon.png"
+  },
+  "style": "style/visual.less",
+  "capabilities": "capabilities.json",
+  "dependencies": null,
+  "stringResources": []
+}

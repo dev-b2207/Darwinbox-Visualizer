@@ -1,0 +1,16 @@
+# Build output and dependencies - these must never be committed. Microsoft's
+# certification review rejects a repository that carries node_modules, .tmp or dist.
+node_modules/
+.tmp/
+dist/
+
+# Packaged visuals are build output too
+*.pbiviz
+
+# Local noise
+*.log
+.eslintcache
+webpack.statistics*.html
+
+# Screenshots the test harness writes while developing
+test/out-*.png
