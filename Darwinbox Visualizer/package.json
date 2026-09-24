@@ -4,7 +4,7 @@
   "description": "Darwinbox Visualizer - a Power BI custom visual with fifteen chart types, a built-in dimension selector, a Monthly/Quarterly/Annual switch and a chart/table toggle.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/REPLACE-WITH-DARWINBOX-REPO/darwinbox-visualizer"
+    "url": "https://github.com/dev-b2207/Darwinbox-Visualizer.git"
   },
   "author": "Darwinbox People Analytics <lokesh.l@darwinbox.in>",
   "license": "MIT",
